@@ -1,19 +1,19 @@
-const CACHE_NAME = 'hale-man-cache-v1';
+const CACHE_NAME = 'shamsi-calendar-cache-v1';
 const urlsToCache = [
   '/',
-  '/index.html',
-  
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
+  'index.html', // نام فایل اصلی HTML شما
 
-  // آدرس کامل عکس‌هایی که استفاده کردید را هم اضافه کنید
-  'favicon.ico',
-  '1.png',
-  '2.png',
-  '3.png',
-  '4.png',
-  '5.png'
+  // ========== آیکون‌ها (باید توسط شما ساخته شوند) ==========
+  'icon-192.png',
+  'icon-512.png',
+
+  // ========== کتابخانه‌های خارجی (CDN) ==========
+  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
+  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js',
+  'https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap'
 ];
 
+// ۱. نصب Service Worker و کش کردن فایل‌ها
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -24,14 +24,33 @@ self.addEventListener('install', event => {
   );
 });
 
+// ۲. پاسخ به درخواست‌ها از طریق کش
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
+        // اگر درخواست در کش موجود بود، آن را برگردان
         if (response) {
           return response;
         }
+        // در غیر این صورت، از شبکه درخواست کن
         return fetch(event.request);
       })
+  );
+});
+
+// ۳. حذف کش‌های قدیمی (برای آپدیت‌های آینده)
+self.addEventListener('activate', event => {
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
 });
